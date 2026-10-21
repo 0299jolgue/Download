@@ -15,7 +15,6 @@
     .intro { color: #aabcbf; line-height: 1.6; max-width: 52ch; margin-bottom: 32px; }
     .card { background: #151f29; border: 1px solid #30434c; border-radius: 22px; padding: 28px; box-shadow: 0 24px 70px #0005; }
     label { display: block; font-weight: 650; margin-bottom: 10px; }
-    input[type=password] { width: 100%; padding: 13px 15px; background: #0f171f; color: #eaf4f3; border: 1px solid #48616a; border-radius: 10px; font: inherit; }
     input:focus-visible, button:focus-visible, .drop:focus-visible { outline: 3px solid #8de8c9; outline-offset: 3px; }
     .drop { margin-top: 22px; padding: 44px 24px; border: 2px dashed #527179; border-radius: 16px; text-align: center; background: #12222a; cursor: pointer; transition: border-color .15s, background .15s; }
     .drop.active, .drop:hover { border-color: #8de8c9; background: #16313a; }
@@ -40,8 +39,6 @@
   <h1>Partilha ficheiros grandes.</h1>
   <p class="intro">Envia um ficheiro até 2 GiB. Quem abrir <code>/download</code> descarrega o último ficheiro enviado.</p>
   <section class="card" aria-label="Enviar ficheiro">
-    <label for="key">Chave de upload</label>
-    <input id="key" type="password" autocomplete="off" placeholder="A chave configurada no servidor">
     <div id="drop" class="drop" role="button" tabindex="0" aria-label="Selecionar ficheiro">
       <strong id="file-title">Arrasta o ficheiro para aqui</strong>
       <span>ou clica para selecionar</span>
@@ -57,7 +54,7 @@
       <button id="copy" type="button">Copiar link</button>
     </div>
   </section>
-  <footer>A chave fica apenas nesta aba. O ficheiro fica no armazenamento do servidor.</footer>
+  <footer>Um novo upload substitui o ficheiro anterior.</footer>
 </main>
 <script>
   const $ = id => document.getElementById(id);
@@ -87,8 +84,6 @@
   drop.addEventListener('drop', event => setFile(event.dataTransfer.files[0]));
   send.addEventListener('click', () => {
     if (!selected || busy) return;
-    const key = $('key').value.trim();
-    if (!key) { showError('Introduz a chave de upload.'); return; }
     if (!/^[A-Za-z0-9][A-Za-z0-9._-]*$/.test(selected.name)) {
       showError('Renomeia o ficheiro usando letras, números, ponto, hífen ou underscore.'); return;
     }
@@ -102,7 +97,6 @@
     $('status').textContent = 'A enviar…';
     const xhr = new XMLHttpRequest();
     xhr.open('POST', `/upload?name=${encodeURIComponent(selected.name)}`);
-    xhr.setRequestHeader('Authorization', `Bearer ${key}`);
     xhr.setRequestHeader('Content-Type', 'application/octet-stream');
     xhr.upload.onprogress = event => {
       if (event.lengthComputable) {
