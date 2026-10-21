@@ -1,3 +1,5 @@
-data/
+latest.json
+*.bin
+*.part
 __pycache__/
 *.pyc
