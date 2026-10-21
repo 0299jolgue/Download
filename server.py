@@ -1,6 +1,5 @@
 """Python 3.12: two-route large-file transfer site for Linux."""
 
-import hmac
 import json
 import os
 import re
@@ -11,15 +10,14 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
+STORAGE = ROOT
 CHUNK_SIZE = 1024 * 1024
 MAX_BYTES = 2 * 1024**3 - 1
 UPLOAD_LOCK = threading.Lock()
 
 
 def data_dir():
-    path = Path(os.getenv("DATA_DIR", str(ROOT / "data"))).resolve()
-    path.mkdir(parents=True, exist_ok=True)
-    return path
+    return STORAGE
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -87,15 +85,6 @@ class Handler(BaseHTTPRequestHandler):
         if urllib.parse.urlsplit(self.path).path != "/upload":
             self.close_connection = True
             self.respond(404, {"error": "Rota não encontrada."})
-            return
-        secret = os.getenv("UPLOAD_KEY", "")
-        if not secret:
-            self.close_connection = True
-            self.respond(503, {"error": "Configura UPLOAD_KEY no servidor."})
-            return
-        if not hmac.compare_digest(self.headers.get("Authorization", ""), f"Bearer {secret}"):
-            self.close_connection = True
-            self.respond(401, {"error": "Chave de upload inválida."})
             return
         name = urllib.parse.parse_qs(urllib.parse.urlsplit(self.path).query).get("name", [""])[0]
         if not name or len(name.encode()) > 255 or not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._-]*", name) or name in (".", ".."):
